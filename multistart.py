@@ -4,6 +4,38 @@ import numpy as np
 
 from BFGS import BFGS
 
+class MultiStart:
+    def __init__(self, f, nabla_f, n_points, optimization_algorithm, n_dim):
+        self.algo = optimization_algorithm
+        self.f = f
+        self.nabla_f = nabla_f
+        self.n_dim = n_dim
+
+        self.n_points = n_points
+        self.x_min = None
+
+    def _generate_starting_point(self):
+        x0 = np.zeros(self.n_dim)
+            
+        for i in range(self.n_dim):
+            x0[i] = random.randint(1, 10)
+
+        return x0
+
+    def run(self):
+        for _ in range(self.n_points):
+            x0 = self._generate_starting_point()
+
+            local_algo = self.algo(x0, self.f, self.nabla_f)
+            local_algo.run()
+
+            if self.x_min is None:
+                self.x_min = local_algo.x_min
+
+            if self.f(local_algo.x_min) < self.f(self.x_min):
+                self.x_min = local_algo.x_min
+
+
 def Rastrigin(x):
     sum_ = 0
     for i in range(0, len(x)):
@@ -18,34 +50,18 @@ def nabla_rastrigin(x):
 
     return nabla_
 
-n_dim = 5
-def multistart(n_points):
-    better = None
+if __name__ == "__main__":
 
-    for point in range(n_points):
-        x = np.zeros(4)
-        for i in range(4):
-            x[i] = random.randint(1, 10)
+    n_dim = 5
 
-        algo = BFGS(x, Rastrigin, nabla_rastrigin)
-        algo.run()
-
-        if better is None:
-            better = algo.x_min
-
-        if Rastrigin(algo.x_min) < Rastrigin(better):
-            better = algo.x_min
-
-    
-    return better
-
-x = np.array([123.0, 11.0, -1.0, 0.0, 120])
-algo = BFGS(x, Rastrigin, nabla_rastrigin)
-algo.run()
-x_min = algo.x_min
-
-better = multistart(10)
+    x = np.array([123.0, 11.0, -1.0, 0.0, 120])
+    algo = BFGS(x, Rastrigin, nabla_rastrigin)
+    algo.run()
+    x_min = algo.x_min
+    print(Rastrigin(x_min))
 
 
-print(Rastrigin(x_min))
-print(Rastrigin(better))
+    multistart = MultiStart(Rastrigin, nabla_rastrigin, 10, BFGS, n_dim)
+    multistart.run()
+
+    print(Rastrigin(multistart.x_min))
