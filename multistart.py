@@ -36,21 +36,20 @@ class MultiStart:
                 self.x_min = local_algo.x_min
 
 
-def Rastrigin(x):
-    sum_ = 0
-    for i in range(0, len(x)):
-        sum_ += (x[i]**2 - 10 * math.cos(2 * math.pi * x[i]))
-
-    return 10 * len(x) + sum_
-
-def nabla_rastrigin(x):
-    nabla_ = np.zeros(len(x))
-    for i in range(0, len(x)):
-        nabla_[i] = 2*x[i] + 20 * math.pi * math.sin(2 * math.pi * x[i])
-
-    return nabla_
-
 if __name__ == "__main__":
+    def Rastrigin(x):
+        sum_ = 0
+        for i in range(0, len(x)):
+            sum_ += (x[i]**2 - 10 * math.cos(2 * math.pi * x[i]))
+
+        return 10 * len(x) + sum_
+
+    def nabla_rastrigin(x):
+        nabla_ = np.zeros(len(x))
+        for i in range(0, len(x)):
+            nabla_[i] = 2*x[i] + 20 * math.pi * math.sin(2 * math.pi * x[i])
+
+        return nabla_
 
     n_dim = 5
 
