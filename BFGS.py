@@ -2,9 +2,10 @@ import numpy as np
 
 
 class BFGS:
-    def __init__(self, starting_point, f, nabla_f, rho=0.5, c=1e-4):
+    def __init__(self, starting_point, f, nabla_f, rho=0.5, c1=1e-4, c2=0.9):
         self.rho = rho
-        self.c = c
+        self.c1 = c1
+        self.c2 = c2
         self.x0 = starting_point
 
         self.f = f
@@ -12,13 +13,17 @@ class BFGS:
 
         self.x_min = 0 
 
-    def line_search(self, alpha, x, p, _):
-        if self.f(x + alpha * p) <= self.f(x) + self.c * alpha * self.nabla_f(x).T @ p:
+    def line_search(self, alpha, x, p, _, alpha_armijo=None):
+        armijo = self.f(x + alpha * p) <= self.f(x) + self.c1 * alpha * self.nabla_f(x).T @ p
+        curvatura = self.nabla_f(x + alpha * p).T @ p >= self.c2 * self.nabla_f(x).T @ p
+
+        if armijo and curvatura:
             return alpha
-        elif _ >= 100:
-            return alpha
-        else:
-            return self.line_search(alpha * self.rho, x, p, _ + 1)
+        if armijo and alpha_armijo is None:
+            alpha_armijo = alpha
+        if _ >= 100:
+            return 0.0 if alpha_armijo is None else alpha_armijo # almeno soddisfa armijo e non usa passi troppo piccoli
+        return self.line_search(alpha * self.rho, x, p, _ + 1, alpha_armijo)
 
     def update_B(self, B, s, y):
         if y.T @ s <= 1e-8 or np.linalg.norm(s) <= 1e-8:
